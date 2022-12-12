@@ -1,0 +1,13 @@
+Release/
+Reference/
+Video/
+Art/
+Sound/
+Music_Design/
+Game/node_modules/
+Walking_Sim/node_modules/
+2021_Early_Cordova_Test/
+2021_Early_Word_Rockets/
+2021_V10_Cordova_Test/
+2021_Word_Volley/
+.DS_Store
