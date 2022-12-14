@@ -15,3 +15,7 @@ window.gameFullScreen = function(game_fullscreen) {
 window.gameIsFullScreen = function(game_fullscreen) {
   return ipcRenderer.sendSync('synchronous-message', ["getfullscreen"]);
 }
+
+window.fileList = function(directory_path) {
+  return ipcRenderer.sendSync('synchronous-message', ["fileList", directory_path]);
+}

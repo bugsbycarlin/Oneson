@@ -12,9 +12,10 @@ var performance_result = null;
 
 // var first_screen = "intro";
 // var first_screen = "title";
-var first_screen = "walking_sim";
+// var first_screen = "walking_sim";
+var first_screen = "file_editor";
 
-var subgames = ["walking_sim"];
+var subgames = ["walking_sim", "file_editor"];
 
 var pixi = null;
 var game = null;

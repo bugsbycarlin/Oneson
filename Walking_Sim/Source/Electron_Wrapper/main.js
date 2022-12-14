@@ -8,7 +8,8 @@
 
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow } = require('electron');
+const { app, ipcMain, BrowserWindow } = require('electron');
+const fs = require('fs');
 const path = require('path');
 const settings = require('electron-settings');
 
@@ -60,6 +61,8 @@ function createWindow () {
         event.returnValue = 'game is windowed.'
       } else if (arg[0] == "getfullscreen") {
         event.returnValue = mainWindow.isFullScreen();
+      } else if (arg[0] == "fileList") {
+        event.returnValue = fs.readdirSync(arg[1])
       }
     });
   });
