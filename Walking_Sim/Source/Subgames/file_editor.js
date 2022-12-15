@@ -33,8 +33,14 @@ class FileEditor extends Screen {
 
     this.file_selection = 0;
     
-    this.images = new PIXI.Container();
-    this.addChild(this.images);
+    this.display_layer = new PIXI.Container();
+    this.addChild(this.display_layer);
+
+    this.polygon_layer = new PIXI.Container();
+    this.addChild(this.polygon_layer);
+
+    this.images = [];
+    this.image_filenames = [];
 
     let font_20 = {fontFamily: "Bebas Neue", fontSize: 20, fill: 0x000000, letterSpacing: 2, align: "left"};
     this.info_text = makeText("", font_20, this, 20, 20, 0, 0);
@@ -45,34 +51,53 @@ class FileEditor extends Screen {
   }
 
   loadAsset() {
-    if (this.images != null) this.images.removeChildren();
+    if (this.display_layer != null) this.display_layer.removeChildren();
 
     this.file_root = this.assets[this.file_selection];
     console.log(this.file_root);
 
-    this.image_filenames = [];
-    this.image_list = [];
+    if (this.images[this.file_root] == null) {
+      this.images[this.file_root] = [];
+      this.image_filenames[this.file_root] = [];
 
-    for (let i = 0; i < this.file_list.length; i++) {
-      if (this.file_list[i].includes(this.file_root) && this.file_list[i].includes(".png")) {
-        let image_filename = this.file_list[i];        
-        this.image_filenames.push(image_filename);
+      let images = this.images[this.file_root];
+      let filenames = this.image_filenames[this.file_root];
 
-        let image = makeSprite(asset_directory + "/" + image_filename, this.images, 0, 0);
-        image.visible = false;
-        this.image_list.push(image);
+      for (let i = 0; i < this.file_list.length; i++) {
+        if (this.file_list[i].includes(this.file_root) && this.file_list[i].includes(".png")) {
+          let image_filename = this.file_list[i];        
+          filenames.push(image_filename);
+
+          let image = makeSprite(asset_directory + "/" + image_filename, this.display_layer, 0, 0);
+          image.visible = false;
+
+          image.polygons = [];
+          image.current_polygon = null;
+          images.push(image);
+        }
+      }
+    } else {
+      let images = this.images[this.file_root];
+      let filenames = this.image_filenames[this.file_root];
+      for (let i = 0; i < images.length; i++) {
+        this.display_layer.addChild(images[i]);
       }
     }
 
-    this.info_text.text = this.file_root + "   (" + this.image_filenames.length + ")"
+    this.info_text.text = this.file_root + "   (" + this.image_filenames[this.file_root].length + ")"
 
     this.image_selection = 0;
-    this.image_list[this.image_selection].visible = true;
 
+    let images = this.images[this.file_root];
+    let image = images[this.image_selection];
+
+    image.visible = true;
+    this.drawPolygons(image);
 
     delay(() => {
-      this.background.width = this.images.children[0].width;
-      this.background.height = this.images.children[0].height;
+      this.background.width = this.display_layer.children[0].width;
+      this.background.height = this.display_layer.children[0].height;
+      console.log(this.background.width + "," + this.background.height)
     }, 250);
   }
 
@@ -82,14 +107,19 @@ class FileEditor extends Screen {
 
     let key = ev.key;
     let code = ev.code;
+    let images = this.images[this.file_root];
+    let image = images[this.image_selection];
 
     if (code.includes("Digit")) {
       this.image_selection = Number(code.replace("Digit",""));
-      if (this.image_selection < this.image_list.length) {
-        for (let i = 0; i < this.image_list.length; i++) {
-          this.image_list[i].visible = i == this.image_selection ? true : false;
+      if (this.image_selection < images.length) {
+        for (let i = 0; i < images.length; i++) {
+          images[i].visible = i == this.image_selection ? true : false;
         }
       }
+      console.log(images);
+      image = images[this.image_selection];
+      this.drawPolygons(image);
     }
     
 
@@ -97,10 +127,117 @@ class FileEditor extends Screen {
       if (key === "ArrowUp") this.file_selection = (this.file_selection + this.assets.length - 1) % this.assets.length
       if (key === "ArrowDown") this.file_selection = (this.file_selection + this.assets.length + 1) % this.assets.length
     
-      console.log(this.file_selection);
       this.loadAsset();
-      console.log("hok");
     }
+
+
+    if (key === "z" && image.current_polygon != null && image.current_polygon.length >= 2) {
+      image.current_polygon.pop();
+      image.current_polygon.pop();
+      this.drawPolygons(image);
+    }
+
+    if (key === "c" && image.current_polygon != null && image.current_polygon.length >= 6) {
+      image.polygons.push(image.current_polygon);
+      image.current_polygon = null;
+      this.drawPolygons(image);
+    }
+
+    if (key === "Backspace" && image.polygons.length > 0) {
+      image.polygons.pop();
+      this.drawPolygons(image);
+    }
+
+
+    if (key === "w" && image.current_polygon != null && image.current_polygon.length >= 2) {
+      for (let j = 0; j < image.current_polygon.length; j+= 2) {
+        image.current_polygon[j+1] -= 1;
+      }
+      this.drawPolygons(image);
+    }
+
+    if (key === "s" && image.current_polygon != null && image.current_polygon.length >= 2) {
+      for (let j = 0; j < image.current_polygon.length; j+= 2) {
+        image.current_polygon[j+1] += 1;
+      }
+      this.drawPolygons(image);
+    }
+
+    if (key === "a" && image.current_polygon != null && image.current_polygon.length >= 2) {
+      for (let j = 0; j < image.current_polygon.length; j+= 2) {
+        image.current_polygon[j] -= 1;
+      }
+      this.drawPolygons(image);
+    }
+
+    if (key === "d" && image.current_polygon != null && image.current_polygon.length >= 2) {
+      for (let j = 0; j < image.current_polygon.length; j+= 2) {
+        image.current_polygon[j] += 1;
+      }
+      this.drawPolygons(image);
+    }
+  }
+
+
+  // Mouse clickos
+  mouseUp(ev) {
+    // the true event is trash, use this instead
+    let mouse_data = pixi.renderer.plugins.interaction.mouse.global;
+    let m_x = Math.round(mouse_data.x);
+    let m_y = Math.round(mouse_data.y);
+    let images = this.images[this.file_root];
+    let image = images[this.image_selection];
+
+    if (image.current_polygon == null) {
+      image.current_polygon = [];
+    }
+    image.current_polygon.push(m_x);
+    image.current_polygon.push(m_y);
+    this.drawPolygons(image);
+  }
+
+
+  drawPolygons(image) {
+    if (this.polygon_layer != null) this.polygon_layer.removeChildren();
+
+    let graphics = new PIXI.Graphics();
+
+    for (let i = 0; i < image.polygons.length; i++) {
+      let polygon = image.polygons[i];
+
+      for (let j = 0; j < polygon.length; j+= 2) {
+        let x = polygon[j];
+        let y = polygon[j+1];
+
+        graphics.beginFill(0xed7014);
+        graphics.drawCircle(x, y, 5);
+        graphics.endFill();
+      }
+
+      graphics.beginFill(0xFFFFFF, 0.25);
+      graphics.drawPolygon(polygon);
+      graphics.endFill();
+    }
+
+    if (image.current_polygon != null) {
+      console.log(image.current_polygon);
+      let polygon = image.current_polygon;
+
+      for (let j = 0; j < polygon.length; j+= 2) {
+        let x = polygon[j];
+        let y = polygon[j+1];
+
+        graphics.beginFill(0xff1010);
+        graphics.drawCircle(x, y, 5);
+        graphics.endFill();
+      }
+
+      graphics.beginFill(0xFFFFFF, 0.25);
+      graphics.drawPolygon(polygon);
+      graphics.endFill();
+    }
+
+    this.polygon_layer.addChild(graphics);
   }
 
 

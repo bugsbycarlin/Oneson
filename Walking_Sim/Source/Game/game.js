@@ -45,6 +45,7 @@ class Game {
     document.addEventListener("keyup", (ev) => {this.handleKeyUp(ev)}, false);
     document.addEventListener("mousemove", (ev) => {this.handleMouseMove(ev)}, false);
     document.addEventListener("mousedown", (ev) => {this.handleMouseDown(ev)}, false);
+    document.addEventListener("mouseup", (ev) => {this.handleMouseUp(ev)}, false);
 
     window.onfocus = (ev) => {
       if (this.keymap != null) {
@@ -205,6 +206,16 @@ class Game {
       && this.current_screen != null
       && this.screens[this.current_screen].mouseDown != null) {
       this.screens[this.current_screen].mouseDown(ev);
+    }
+  }
+
+
+  handleMouseUp(ev) {
+    console.log("le clicks")
+    if (this.screens != null
+      && this.current_screen != null
+      && this.screens[this.current_screen].mouseUp != null) {
+      this.screens[this.current_screen].mouseUp(ev);
     }
   }
 
