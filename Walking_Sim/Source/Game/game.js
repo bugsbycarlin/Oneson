@@ -12,8 +12,8 @@ var performance_result = null;
 
 // var first_screen = "intro";
 // var first_screen = "title";
-// var first_screen = "walking_sim";
-var first_screen = "file_editor";
+var first_screen = "walking_sim";
+// var first_screen = "file_editor";
 
 var subgames = ["walking_sim", "file_editor"];
 
@@ -186,6 +186,8 @@ class Game {
       .add("Art/Animated_Effects/steam.json")
       .add("Art/Characters/polar_bear.json")
       .add("Art/Characters/black_bear.json")
+      .add("Art/Characters/brown_bear.json")
+      .add("Art/Characters/brown_bear_ghost.json")
       .load(function() {
         and_then();
       });

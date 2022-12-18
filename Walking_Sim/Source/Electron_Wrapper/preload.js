@@ -19,3 +19,15 @@ window.gameIsFullScreen = function(game_fullscreen) {
 window.fileList = function(directory_path) {
   return ipcRenderer.sendSync('synchronous-message', ["fileList", directory_path]);
 }
+
+window.writeFile = function(file_path, content) {
+  return ipcRenderer.sendSync('synchronous-message', ["writeFile", file_path, content]);
+}
+
+window.checkFile = function(file_path) {
+  return ipcRenderer.sendSync('synchronous-message', ["checkFile", file_path]);
+}
+
+window.readFile = function(file_path) {
+  return ipcRenderer.sendSync('synchronous-message', ["readFile", file_path]);
+}

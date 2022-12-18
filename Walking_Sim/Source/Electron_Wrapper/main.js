@@ -41,7 +41,7 @@ function createWindow () {
     mainWindow.loadFile('index.html')
 
     ipcMain.on('synchronous-message', (event, arg) => {
-      if (arg[0] == "fullscreen" && arg[1] == true) {
+      if (arg[0] === "fullscreen" && arg[1] === true) {
         mainWindow.setFullScreenable(true);
         mainWindow.setFullScreen(true);
         mainWindow.maximize();
@@ -50,7 +50,7 @@ function createWindow () {
             data: true
         });
         event.returnValue = 'game is full screen.'
-      } else if (arg[0] == "fullscreen" && arg[1] == false) {
+      } else if (arg[0] === "fullscreen" && arg[1] === false) {
         mainWindow.setFullScreen(false);
         mainWindow.unmaximize();
         mainWindow.setSize(1664, 982);
@@ -59,10 +59,25 @@ function createWindow () {
             data: false
         });
         event.returnValue = 'game is windowed.'
-      } else if (arg[0] == "getfullscreen") {
+      } else if (arg[0] === "getfullscreen") {
         event.returnValue = mainWindow.isFullScreen();
-      } else if (arg[0] == "fileList") {
+      } else if (arg[0] === "fileList") {
         event.returnValue = fs.readdirSync(arg[1])
+      } else if (arg[0] === "writeFile") {
+        let path = arg[1];
+        let content = arg[2];
+        fs.writeFile(path, content, function (err) {
+          if (err) throw err;
+          console.log(path + ' saved!');
+        });
+        event.returnValue = true;
+      } else if (arg[0] === "checkFile") {
+        let path = arg[1];
+        event.returnValue = fs.existsSync(path);
+      } else if (arg[0] === "readFile") {
+        let path = arg[1];
+        let contents = fs.readFileSync(path, 'utf8');
+        event.returnValue = contents;
       }
     });
   });
@@ -88,7 +103,7 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', function () {
-  // if (process.platform !== 'darwin') app.quit()
+  // if (process.platform !=== 'darwin') app.quit()
   app.quit();
 })
 

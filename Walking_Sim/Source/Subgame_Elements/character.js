@@ -73,34 +73,61 @@ Game.prototype.makeCharacter = function(character_name, subtype = "normal") {
       }
     }
 
+    [character.x, character.y] = this.computeStep(character.x, character.y, character.direction);
+
+    // let step = character.walk_speed * character.speed_boost;
+    // let step_x = 0.866 * step;
+    // let step_y = 0.5 * step;
+
+    // if (character.direction == "upright") {
+    //   character.y -= step_y;
+    //   character.x += step_x; 
+    // } else if (character.direction == "upleft") {
+    //   character.y -= step_y;
+    //   character.x -= step_x;
+    // } else if (character.direction == "downright") {
+    //   character.y += step_y;
+    //   character.x += step_x;
+    // } else if (character.direction == "downleft") {
+    //   character.y += step_y;
+    //   character.x -= step_x;
+    // } else if (character.direction == "down") {
+    //   character.y += step;
+    // } else if (character.direction == "up") {
+    //   character.y -= step;
+    // } else if (character.direction == "left") {
+    //   character.x -= step;
+    // } else if (character.direction == "right") {
+    //   character.x += step;
+    // }
+
+    if (character.direction != null) {
+      character.walkAnimation();
+    }
+  }
+
+
+  character.computeStep = function(x, y, direction) {
     let step = character.walk_speed * character.speed_boost;
     let step_x = 0.866 * step;
     let step_y = 0.5 * step;
 
-    if (character.direction == "upright") {
-      character.y -= step_y;
-      character.x += step_x; 
-    } else if (character.direction == "upleft") {
-      character.y -= step_y;
-      character.x -= step_x;
-    } else if (character.direction == "downright") {
-      character.y += step_y;
-      character.x += step_x;
-    } else if (character.direction == "downleft") {
-      character.y += step_y;
-      character.x -= step_x;
-    } else if (character.direction == "down") {
-      character.y += step;
-    } else if (character.direction == "up") {
-      character.y -= step;
-    } else if (character.direction == "left") {
-      character.x -= step;
-    } else if (character.direction == "right") {
-      character.x += step;
-    }
-
-    if (character.direction != null) {
-      character.walkAnimation();
+    if (direction == "upright") {
+      return [x + step_x, y - step_y];
+    } else if (direction == "upleft") {
+      return [x - step_x, y - step_y];
+    } else if (direction == "downright") {
+      return [x + step_x, y + step_y];
+    } else if (direction == "downleft") {
+      return [x - step_x, y + step_y];
+    } else if (direction == "down") {
+      return [x, y + step];
+    } else if (direction == "up") {
+      return [x, y - step];
+    } else if (direction == "left") {
+      return [x - step, y];
+    } else if (direction == "right") {
+      return [x + step, y];
     }
   }
 

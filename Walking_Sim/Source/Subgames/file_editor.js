@@ -45,6 +45,10 @@ class FileEditor extends Screen {
     let font_20 = {fontFamily: "Bebas Neue", fontSize: 20, fill: 0x000000, letterSpacing: 2, align: "left"};
     this.info_text = makeText("", font_20, this, 20, 20, 0, 0);
 
+    this.temporary_text = makeText("", font_20, this, 20, 80, 0, 0);
+
+    this.image_text = makeText("", font_20, this, 20, 40, 0, 0);
+
     this.loadAsset();
 
     this.state = "active";
@@ -54,7 +58,8 @@ class FileEditor extends Screen {
     if (this.display_layer != null) this.display_layer.removeChildren();
 
     this.file_root = this.assets[this.file_selection];
-    console.log(this.file_root);
+
+    this.save_file_path = asset_directory + "/" + this.file_root + ".json";
 
     if (this.images[this.file_root] == null) {
       this.images[this.file_root] = [];
@@ -84,11 +89,26 @@ class FileEditor extends Screen {
       }
     }
 
+    let images = this.images[this.file_root];
+
+    if (window.checkFile(this.save_file_path) === true) {
+      let data = JSON.parse(window.readFile(this.save_file_path)).polygons;
+      console.log(data);
+      for (let i = 0; i < images.length; i++) {
+        let polygon_list = data[i];
+        let image = images[i];
+        for (let j = 0; j < polygon_list.length; j++) {
+          image.polygons.push(polygon_list[j].data)
+        }
+        console.log(image.polygons);
+      }
+    }
+
     this.info_text.text = this.file_root + "   (" + this.image_filenames[this.file_root].length + ")"
+    this.image_text.text = "0";
 
     this.image_selection = 0;
 
-    let images = this.images[this.file_root];
     let image = images[this.image_selection];
 
     image.visible = true;
@@ -116,10 +136,11 @@ class FileEditor extends Screen {
         for (let i = 0; i < images.length; i++) {
           images[i].visible = i == this.image_selection ? true : false;
         }
+        this.image_text.text = this.image_selection
+        console.log(images);
+        image = images[this.image_selection];
+        this.drawPolygons(image);
       }
-      console.log(images);
-      image = images[this.image_selection];
-      this.drawPolygons(image);
     }
     
 
@@ -176,6 +197,14 @@ class FileEditor extends Screen {
       }
       this.drawPolygons(image);
     }
+
+    if (key === "m") {
+      this.saveFile();
+    }
+
+    if (key === "v") {
+      images[0].visible = images[0].visible == true ? false : true;
+    }
   }
 
 
@@ -194,6 +223,33 @@ class FileEditor extends Screen {
     image.current_polygon.push(m_x);
     image.current_polygon.push(m_y);
     this.drawPolygons(image);
+  }
+
+
+  saveFile() {
+    let images = this.images[this.file_root];
+    let output = {
+      width: this.background.width,
+      height: this.background.height,
+      polygons: {}
+    }
+    for (let i = 0; i < images.length; i++) {
+      output.polygons[i] = [];
+      let image = images[i];
+      for (let j = 0; j < image.polygons.length; j++) {
+        output.polygons[i].push({type:"illegal", data:image.polygons[j]})
+      }
+
+    }
+    
+    let result = window.writeFile(this.save_file_path, JSON.stringify(output));
+
+    if (result === true) {
+      this.temporary_text.text = "Saved " + this.file_root + ".json";
+      delay(() => {
+        this.temporary_text.text = "";
+      }, 2000);
+    }
   }
 
 

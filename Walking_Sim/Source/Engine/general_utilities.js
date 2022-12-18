@@ -54,10 +54,37 @@ function dice(number) {
 }
 
 
-
 function distance(x1, y1, x2, y2) {
   return Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
 }
+
+
+// https://github.com/substack/point-in-polygon (MIT license)
+function pointInsidePolygon(point, vs, flat=false) {
+    // ray-casting algorithm based on
+    // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html/pnpoly.html
+    
+    var x = point[0], y = point[1];
+    
+    var inside = false;
+
+    // flat means the polygon list is [x1, y1, x2, y2, x3, y3, ...]
+    // not flat means the polygon list is [[x1, y1], [x2, y2], [x3, y3], ...]
+    if (flat) {
+      // TO DO adapt this to flat.
+    } else {
+      for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+          var xi = vs[i][0], yi = vs[i][1];
+          var xj = vs[j][0], yj = vs[j][1];
+          
+          var intersect = ((yi > y) != (yj > y))
+              && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+          if (intersect) inside = !inside;
+      }
+    }
+    
+    return inside;
+};
 
 
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
