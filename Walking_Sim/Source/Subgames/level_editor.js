@@ -505,6 +505,12 @@ class LevelEditor extends Screen {
     let keymap = game.keymap;
     let player = this.player;
 
+    if (keymap["Shift"]) {
+      player.walk_speed = 3 * default_walk_speed;
+    } else {
+      player.walk_speed = default_walk_speed;
+    }
+
     if (keymap["ArrowUp"] && keymap["ArrowRight"]) {
       player.direction = "upright";
     } else if (keymap["ArrowUp"] && keymap["ArrowLeft"]) {
