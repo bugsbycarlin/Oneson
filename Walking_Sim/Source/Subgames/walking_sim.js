@@ -83,8 +83,8 @@ class WalkingSim extends Screen {
       console.log("adding asset");
       let asset = this.assets[i];
 
-      let x = span * i * 0.866;
-      let y = span * i * 0.5;
+      let x = 100 + span * i * 0.866;
+      let y = 100 + span * i * 0.5;
       //let ground = makeSprite(asset_directory + "/" + asset + "_0.png", layers["ground"], span * i * 0.866, span * i * 0.5, 0, 0, true);
       
       let asset_path = asset_directory + "/" + asset + ".json";
@@ -95,37 +95,62 @@ class WalkingSim extends Screen {
         data = JSON.parse(window.readFile(asset_path));
       }
 
+      let flip = false;
+      if (i % 2 == 0) flip = true;
+
+      // let graphics = new PIXI.Graphics();
+
       let polygons = data.polygons;
+      let terrain_width = data.width;
+      let terrain_height = data.height;
       console.log(data);
-      makeSprite(asset_directory + "/" + asset + "_0.png", layers["ground"], x, y, 0, 0, true);
-      for (const [i, value] of Object.entries(polygons)) {
+      let g = makeSprite(asset_directory + "/" + asset + "_0.png", layers["ground"], x, y, 0.5, 0.5, true);
+      if (flip) g.scale.set(-1, 1);
+      for (const [j, value] of Object.entries(polygons)) {
         console.log("adding an object?");
-        if (polygons[i].length > 0)
+
+        if (polygons[j].length > 0)
         {
           console.log("yes");
-          let terrain_object = makeSprite(asset_directory + "/" + asset + "_" + i + ".png", layers["objects"], x, y, 0, 0, true);
+          let terrain_object = makeSprite(asset_directory + "/" + asset + "_" + j + ".png", layers["objects"], x, y, 0.5, 0.5, true);
           
+          if (flip) terrain_object.scale.set(-1, 1);
+
           terrain_object.polygon = [];
+          terrain_object.flat_polygon = [];
           terrain_object.min_x = null;
           terrain_object.max_x = null;
           terrain_object.min_y = null;
           terrain_object.max_y = null;
-          let polygon = polygons[i][0].data;
+          let polygon = polygons[j][0].data;
 
-          terrain_object.name = asset + "_" + i;
+          terrain_object.name = asset + "_" + j;
 
           let new_illegal = [];
-          for (let j = 0; j < polygon.length; j += 2) {
-            terrain_object.polygon.push([polygon[j] + x, polygon[j+1] + y]);
+          for (let k = 0; k < polygon.length; k += 2) {
+            let n_x = polygon[k] - terrain_width/2 + x;
+            let n_y = polygon[k+1] - terrain_height/2 + y;
+            if (flip) {
+              n_x = terrain_width/2 + x - polygon[k];
+              n_y = polygon[k+1] - terrain_height/2 + y;
+            }
+            terrain_object.polygon.push([n_x, n_y]);
+            terrain_object.flat_polygon.push(n_x);
+            terrain_object.flat_polygon.push(n_y);
 
-            if (terrain_object.min_x == null || polygon[j] + x < terrain_object.min_x) terrain_object.min_x = polygon[j] + x
-            if (terrain_object.max_x == null || polygon[j] + x > terrain_object.max_x) terrain_object.max_x = polygon[j] + x
-            if (terrain_object.min_y == null || polygon[j+1] + y < terrain_object.min_y) terrain_object.min_y = polygon[j+1] + y
-            if (terrain_object.max_y == null || polygon[j+1] + y > terrain_object.max_y) terrain_object.max_y = polygon[j+1] + y
+            if (terrain_object.min_x == null || n_x < terrain_object.min_x) terrain_object.min_x = n_x
+            if (terrain_object.max_x == null || n_x > terrain_object.max_x) terrain_object.max_x = n_x
+            if (terrain_object.min_y == null || n_y < terrain_object.min_y) terrain_object.min_y = n_y
+            if (terrain_object.max_y == null || n_y > terrain_object.max_y) terrain_object.max_y = n_y
           }
 
           this.terrain.push(terrain_object);
           this.illegal_area_polygons.push(terrain_object.polygon)
+
+          // graphics.beginFill(0xFFFFFF, 0.25);
+          // graphics.drawPolygon(terrain_object.flat_polygon);
+          // graphics.endFill();
+          // layers["effects"].addChild(graphics);
         }        
       }
     }

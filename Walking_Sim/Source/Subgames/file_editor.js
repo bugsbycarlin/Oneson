@@ -6,7 +6,7 @@
 // Written by Matthew Carlin
 //
 
-let asset_directory = "../Art/Post Processed Assets";
+let asset_directory = "../Art/Assets";
 let file_editor_background = 0x9bccda;
 
 class FileEditor extends Screen {
