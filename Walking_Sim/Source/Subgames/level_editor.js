@@ -7,8 +7,8 @@
 
 
 let exterior_directory = "./Art/Exteriors";
-let road_directory = "../Art/Roads";
-let map_directory = "../Art/Maps";
+let road_directory = "../Design/Roads";
+let map_directory = "../Design/Maps";
 let map_name = "oneson";
 
 class LevelEditor extends Screen {
@@ -36,12 +36,10 @@ class LevelEditor extends Screen {
     this.config = world_config["swizzle"];
 
     let background_color = makeBlank(this, game.width, game.height, 0, 0);
-    background_color.tint = 0xfcfc65;
+    background_color.tint = 0xfcfca5;
 
     this.map = new PIXI.Container();
     this.addChild(this.map);
-
-
 
     layers["roads"] = new PIXI.Container();
     this.map.addChild(layers["roads"]);
@@ -93,115 +91,76 @@ class LevelEditor extends Screen {
   }
 
 
-  // Update the player
-  updatePlayer() {
-    let self = this;
-    let keymap = game.keymap;
-    let player = this.player;
-
-    if (keymap["ArrowUp"] && keymap["ArrowRight"]) {
-      player.direction = "upright";
-    } else if (keymap["ArrowUp"] && keymap["ArrowLeft"]) {
-      player.direction = "upleft";
-    } else if (keymap["ArrowDown"] && keymap["ArrowRight"]) {
-      player.direction = "downright";
-    } else if (keymap["ArrowDown"] && keymap["ArrowLeft"]) {
-      player.direction = "downleft";
-    } else if (keymap["ArrowDown"]) {
-      player.direction = "down";
-    } else if (keymap["ArrowUp"]) {
-      player.direction = "up";
-    } else if (keymap["ArrowLeft"]) {
-      player.direction = "left";
-    } else if (keymap["ArrowRight"]) {
-      player.direction = "right";
-    } else {
-      player.direction = null;
-    }
-
-    if (player.direction != null && this.testMove(player.x, player.y, player.direction)) {
-      if (player.direction != null) {
-        player.move();
-        this.updateGhost();
-        this.sortObjectLayer();
-      }
-    }
-  }
-
-
-  updateGhost() {
-    this.player_ghost.x = this.player.x;
-    this.player_ghost.y = this.player.y;
-    this.player_ghost.direction = this.player.direction;
-    this.player_ghost.updateDirection();
-    this.player_ghost.character_sprite[this.player_ghost.direction].gotoAndStop(
-      this.player.character_sprite[this.player.direction].currentFrame
-    );
-  }
-
-
-  testMove(x, y, direction) {
-    let point = this.player.computeStep(x, y, direction);
-    console.log(point);
-    for (let i = 0; i < this.illegal_area_polygons.length; i++) {
-      if (pointInsidePolygon(point, this.illegal_area_polygons[i])) return false;
-    }
-
-    return true;
-  }
-
-
-  sortObjectLayer() {
+  addExteriorObjects(name, reverse, x, y) {
+    //add the tops and such
     let layers = this.layers;
     let player = this.player;
+    let asset_path = exterior_directory + "/" + name + ".json";
 
-    layers["objects"].removeChildren();
+    let data = null;
+    if (window.checkFile(asset_path) === true) {
+      console.log("reading data");
+      data = JSON.parse(window.readFile(asset_path));
+    }
+    console.log(data);
 
-    // layers["objects"].addChild(player);
+    let polygons = data.polygons;
+    let terrain_width = data.width;
+    let terrain_height = data.height;
 
-    let added_character = false;
+    let return_objects = [];
 
-    for (let i = 0; i < this.terrain.length; i++) {
-      let terrain = this.terrain[i];
+    for (const [j, value] of Object.entries(polygons)) {
+      if (j > 0 && polygons[j].length > 0)
+      {
+        let terrain_object = makeSprite(asset_directory + "/" + name + "_" + j + ".png", layers["objects"], x, y, 0.5, 0.5, true);
+        
+        if (reverse) terrain_object.scale.set(-1, 1);
 
-      if (!added_character) {
+        terrain_object.polygon = [];
+        terrain_object.flat_polygon = [];
+        terrain_object.min_x = null;
+        terrain_object.max_x = null;
+        terrain_object.min_y = null;
+        terrain_object.max_y = null;
+        let polygon = polygons[j][0].data;
 
-        if (player.y < terrain.min_y) {
-          added_character = true;
-          console.log("adding character because above min for " + terrain.name)
-          layers["objects"].addChild(player);
-          layers["objects"].addChild(terrain);
-        } else if (player.y > terrain.max_y || player.x < terrain.min_x || player.x > terrain.max_x) {
-          layers["objects"].addChild(terrain);
-        } else {
-          // test the polygon with downward rays until out of range. if one is inside the polygon,
-          // the character is behind, so add character and then terrain.
-          let added_terrain = false;
-          for (let d = player.y + 10; d <= terrain.max_y; d += 10) {
-            let p2 = [player.x, d];
-            if (pointInsidePolygon(p2, terrain.polygon)) {
-              added_character = true;
-              console.log("adding character because ray cast into polygon for " + terrain.name)
-              layers["objects"].addChild(player);
-              layers["objects"].addChild(terrain);
-              added_terrain = true;
-              break;
-            }
+        terrain_object.name = name + "_" + j;
+
+        let new_illegal = [];
+        for (let k = 0; k < polygon.length; k += 2) {
+          let n_x = polygon[k] - terrain_width/2 + x;
+          let n_y = polygon[k+1] - terrain_height/2 + y;
+          if (reverse) {
+            n_x = terrain_width/2 + x - polygon[k];
+            n_y = polygon[k+1] - terrain_height/2 + y;
           }
+          terrain_object.polygon.push([n_x, n_y]);
+          terrain_object.flat_polygon.push(n_x);
+          terrain_object.flat_polygon.push(n_y);
 
-          if (!added_terrain) layers["objects"].addChild(terrain);
+          if (terrain_object.min_x == null || n_x < terrain_object.min_x) terrain_object.min_x = n_x
+          if (terrain_object.max_x == null || n_x > terrain_object.max_x) terrain_object.max_x = n_x
+          if (terrain_object.min_y == null || n_y < terrain_object.min_y) terrain_object.min_y = n_y
+          if (terrain_object.max_y == null || n_y > terrain_object.max_y) terrain_object.max_y = n_y
         }
-      } else {
-        layers["objects"].addChild(terrain)   
-      }      
+
+        let draw_first_polygon = false;
+        if (draw_first_polygon == true && j == 1) {
+          let graphics = new PIXI.Graphics();
+          graphics.beginFill(0xFFFFFF, 0.25);
+          graphics.drawPolygon(terrain_object.flat_polygon);
+          graphics.endFill();
+          layers["effects"].addChild(graphics);
+        }
+
+        return_objects.push(terrain_object);
+        this.terrain.push(terrain_object);
+        this.illegal_area_polygons.push(terrain_object.polygon)
+      }        
     }
 
-    if (!added_character) {
-      console.log("adding character at the end by default")
-      layers["objects"].addChild(player);
-    }
-
-    console.log("Terrain layer length is " + layers["objects"].children.length)
+    return return_objects;
   }
 
 
@@ -328,84 +287,13 @@ class LevelEditor extends Screen {
     } else if (this.new_item != null && this.state === "exteriors") {
       this.exterior_elements.push(this.new_item);
 
-      this.addExteriorObjects(this.new_item.name, this.new_item.reverse, this.new_item.x, this.new_item.y);
+      this.new_item.exterior_objects = this.addExteriorObjects(this.new_item.name, this.new_item.reverse, this.new_item.x, this.new_item.y);
 
       this.new_item = null;
 
-      this.sortLayer(this.exterior_elements, "ground");
+      this.sortLayer(this.exterior_elements, "ground", true);
       this.sortObjectLayer();
     } 
-  }
-
-
-  addExteriorObjects(name, reverse, x, y) {
-    //add the tops and such
-    let layers = this.layers;
-    let player = this.player;
-    let asset_path = exterior_directory + "/" + name + ".json";
-
-    let data = null;
-    if (window.checkFile(asset_path) === true) {
-      console.log("reading data");
-      data = JSON.parse(window.readFile(asset_path));
-    }
-    console.log(data);
-
-    let polygons = data.polygons;
-    let terrain_width = data.width;
-    let terrain_height = data.height;
-
-    for (const [j, value] of Object.entries(polygons)) {
-      if (j > 0 && polygons[j].length > 0)
-      {
-        let terrain_object = makeSprite(asset_directory + "/" + name + "_" + j + ".png", layers["objects"], x, y, 0.5, 0.5, true);
-        
-        if (reverse) terrain_object.scale.set(-1, 1);
-
-        terrain_object.polygon = [];
-        terrain_object.flat_polygon = [];
-        terrain_object.min_x = null;
-        terrain_object.max_x = null;
-        terrain_object.min_y = null;
-        terrain_object.max_y = null;
-        let polygon = polygons[j][0].data;
-
-        terrain_object.name = name + "_" + j;
-
-        let new_illegal = [];
-        for (let k = 0; k < polygon.length; k += 2) {
-          let n_x = polygon[k] - terrain_width/2 + x;
-          let n_y = polygon[k+1] - terrain_height/2 + y;
-          if (reverse) {
-            n_x = terrain_width/2 + x - polygon[k];
-            n_y = polygon[k+1] - terrain_height/2 + y;
-          }
-          terrain_object.polygon.push([n_x, n_y]);
-          terrain_object.flat_polygon.push(n_x);
-          terrain_object.flat_polygon.push(n_y);
-
-          if (terrain_object.min_x == null || n_x < terrain_object.min_x) terrain_object.min_x = n_x
-          if (terrain_object.max_x == null || n_x > terrain_object.max_x) terrain_object.max_x = n_x
-          if (terrain_object.min_y == null || n_y < terrain_object.min_y) terrain_object.min_y = n_y
-          if (terrain_object.max_y == null || n_y > terrain_object.max_y) terrain_object.max_y = n_y
-        }
-
-        this.terrain.push(terrain_object);
-        this.illegal_area_polygons.push(terrain_object.polygon)
-      }        
-    }
-  }
-
-
-  sortLayer(elements, layer_name) {
-    let layer = this.layers[layer_name];
-    layer.removeChildren();
-
-    let draw_elements = [...elements].sort((a,b) => {return a.y - b.y});
-
-    for (let i = 0; i < draw_elements.length; i++) {
-      layer.addChild(draw_elements[i]);
-    }
   }
 
 
@@ -457,11 +345,11 @@ class LevelEditor extends Screen {
 
         this.exterior_elements.push(element);
 
-        this.addExteriorObjects(element.name, element.reversed, element.x, element.y)
+        element.exterior_objects = this.addExteriorObjects(element.name, element.reversed, element.x, element.y)
       }
 
       this.sortLayer(this.road_elements, "roads");
-      this.sortLayer(this.exterior_elements, "ground");
+      this.sortLayer(this.exterior_elements, "ground", true);
       // this.sortObjectLayer();
     }
   }
@@ -511,6 +399,144 @@ class LevelEditor extends Screen {
         this.info_text.text = "";
       }, 2000);
     }
+  }
+
+
+
+  // Update the player
+  updatePlayer() {
+    let self = this;
+    let keymap = game.keymap;
+    let player = this.player;
+
+    if (keymap["ArrowUp"] && keymap["ArrowRight"]) {
+      player.direction = "upright";
+    } else if (keymap["ArrowUp"] && keymap["ArrowLeft"]) {
+      player.direction = "upleft";
+    } else if (keymap["ArrowDown"] && keymap["ArrowRight"]) {
+      player.direction = "downright";
+    } else if (keymap["ArrowDown"] && keymap["ArrowLeft"]) {
+      player.direction = "downleft";
+    } else if (keymap["ArrowDown"]) {
+      player.direction = "down";
+    } else if (keymap["ArrowUp"]) {
+      player.direction = "up";
+    } else if (keymap["ArrowLeft"]) {
+      player.direction = "left";
+    } else if (keymap["ArrowRight"]) {
+      player.direction = "right";
+    } else {
+      player.direction = null;
+    }
+
+    if (player.direction != null && this.testMove(player.x, player.y, player.direction)) {
+      if (player.direction != null) {
+        player.move();
+        this.updateGhost();
+        this.sortObjectLayer();
+      }
+    }
+  }
+
+
+  updateGhost() {
+    this.player_ghost.x = this.player.x;
+    this.player_ghost.y = this.player.y;
+    this.player_ghost.direction = this.player.direction;
+    this.player_ghost.updateDirection();
+    this.player_ghost.character_sprite[this.player_ghost.direction].gotoAndStop(
+      this.player.character_sprite[this.player.direction].currentFrame
+    );
+  }
+
+
+  testMove(x, y, direction) {
+    let point = this.player.computeStep(x, y, direction);
+    console.log(point);
+    for (let i = 0; i < this.illegal_area_polygons.length; i++) {
+      if (pointInsidePolygon(point, this.illegal_area_polygons[i])) return false;
+    }
+
+    return true;
+  }
+
+
+  sortLayer(elements, layer_name, sort_terrain = false) {
+    let layer = this.layers[layer_name];
+    layer.removeChildren();
+
+    let draw_elements = [...elements].sort((a,b) => {return a.y - b.y});
+
+    for (let i = 0; i < draw_elements.length; i++) {
+      layer.addChild(draw_elements[i]);
+    }
+
+    // very hacky place to put this
+    if (sort_terrain) {
+      let new_terrain = [];
+      for (let i = 0; i < draw_elements.length; i++) {
+        for (let j = 0; j < draw_elements[i].exterior_objects.length; j++) {
+          new_terrain.push(draw_elements[i].exterior_objects[j])
+        }
+      }
+      this.terrain = new_terrain;
+    }
+  }
+
+
+  sortObjectLayer() {
+    let layers = this.layers;
+    let player = this.player;
+
+    layers["objects"].removeChildren();
+
+    // layers["objects"].addChild(player);
+
+    let added_character = false;
+
+    console.log(this.terrain);
+
+    for (let i = 0; i < this.terrain.length; i++) {
+      let terrain = this.terrain[i];
+
+      if (!added_character) {
+
+        if (player.y < terrain.min_y) {
+          added_character = true;
+          console.log("adding character because above min for " + terrain.name)
+          layers["objects"].addChild(player);
+          layers["objects"].addChild(terrain);
+        } else if (player.y > terrain.max_y || player.x < terrain.min_x || player.x > terrain.max_x) {
+          layers["objects"].addChild(terrain);
+        } else {
+          // test the polygon with downward rays until out of range. if one is inside the polygon,
+          // the character is behind, so add character and then terrain.
+          let added_terrain = false;
+          for (let d = player.y + 10; d <= terrain.max_y; d += 10) {
+            let p2 = [player.x, d];
+            if (pointInsidePolygon(p2, terrain.polygon)) {
+              added_character = true;
+              console.log("adding character because ray cast into polygon for " + terrain.name)
+              layers["objects"].addChild(player);
+              layers["objects"].addChild(terrain);
+              added_terrain = true;
+              break;
+            }
+          }
+
+          if (!added_terrain) layers["objects"].addChild(terrain);
+        }
+      } else {
+        layers["objects"].addChild(terrain)   
+      }      
+    }
+
+    if (!added_character) {
+      console.log("adding character at the end by default")
+      layers["objects"].addChild(player);
+    }
+
+    console.log("Terrain layer length is " + layers["objects"].children.length)
   }
 
 
