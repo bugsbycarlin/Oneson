@@ -44,6 +44,8 @@ Game.prototype.createScreen = function(screen_name, extra_param = null, reset = 
     this.screens["walking_sim"] = new WalkingSim();
   } else if (screen_name == "file_editor") {
     this.screens["file_editor"] = new FileEditor();
+  } else if (screen_name == "level_editor") {
+    this.screens["level_editor"] = new LevelEditor();
   }
 
   console.log(screen_name);
