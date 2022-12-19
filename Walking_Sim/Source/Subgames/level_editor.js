@@ -6,7 +6,7 @@
 //
 
 
-let exterior_directory = "../Art/Exteriors";
+let exterior_directory = "./Art/Exteriors";
 let road_directory = "../Art/Roads";
 let map_directory = "../Art/Maps";
 let map_name = "oneson";
@@ -59,7 +59,7 @@ class LevelEditor extends Screen {
     this.terrain = [];
 
     this.road_files = window.fileList(road_directory).filter((item) => {return !item.includes("Store") && item.includes(".png")}).map((item) => {return item.replace(".png","")});
-    this.exterior_files = window.fileList(exterior_directory).filter((item) => {return !item.includes("Store") && item.includes(".psd")}).map((item) => {return item.replace(".psd","")});
+    this.exterior_files = window.fileList(exterior_directory).filter((item) => {return !item.includes("Store") && item.includes(".json")}).map((item) => {return item.replace(".json","")});
 
     this.loadMap();
     this.addCharacters();

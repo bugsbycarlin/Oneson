@@ -1,0 +1,95 @@
+{"frames": {
+
+"electric_01.png":
+{
+	"frame": {"x":0,"y":0,"w":63,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":64},
+	"sourceSize": {"w":63,"h":64}
+},
+"electric_02.png":
+{
+	"frame": {"x":63,"y":0,"w":63,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":64},
+	"sourceSize": {"w":63,"h":64}
+},
+"electric_03.png":
+{
+	"frame": {"x":126,"y":0,"w":63,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":64},
+	"sourceSize": {"w":63,"h":64}
+},
+"electric_04.png":
+{
+	"frame": {"x":189,"y":0,"w":63,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":64},
+	"sourceSize": {"w":63,"h":64}
+},
+"electric_05.png":
+{
+	"frame": {"x":252,"y":0,"w":63,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":64},
+	"sourceSize": {"w":63,"h":64}
+},
+"electric_06.png":
+{
+	"frame": {"x":315,"y":0,"w":63,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":64},
+	"sourceSize": {"w":63,"h":64}
+},
+"electric_07.png":
+{
+	"frame": {"x":378,"y":0,"w":63,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":64},
+	"sourceSize": {"w":63,"h":64}
+},
+"electric_08.png":
+{
+	"frame": {"x":441,"y":0,"w":63,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":64},
+	"sourceSize": {"w":63,"h":64}
+},
+"electric_09.png":
+{
+	"frame": {"x":504,"y":0,"w":63,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":64},
+	"sourceSize": {"w":63,"h":64}
+},
+"electric_10.png":
+{
+	"frame": {"x":567,"y":0,"w":63,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":63,"h":64},
+	"sourceSize": {"w":63,"h":64}
+}},
+"animations": {
+	"electric": ["electric_01.png","electric_02.png","electric_03.png","electric_04.png","electric_05.png","electric_06.png","electric_07.png","electric_08.png","electric_09.png","electric_10.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "electric.png",
+	"format": "RGBA8888",
+	"size": {"w":630,"h":64},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:9592a71a74c4981efe79b3432fbebd1f:6038daf86e0cc70e8e23274b8d477840:cbf7c0831d785496211c89402311d1f3$"
+}
+}
