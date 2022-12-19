@@ -144,9 +144,9 @@ class FileEditor extends Screen {
     }
     
 
-    if (key === "ArrowUp" || key === "ArrowDown") {
-      if (key === "ArrowUp") this.file_selection = (this.file_selection + this.assets.length - 1) % this.assets.length
-      if (key === "ArrowDown") this.file_selection = (this.file_selection + this.assets.length + 1) % this.assets.length
+    if (key === "[" || key === "]") {
+      if (key === "[") this.file_selection = (this.file_selection + this.assets.length - 1) % this.assets.length
+      if (key === "]") this.file_selection = (this.file_selection + this.assets.length + 1) % this.assets.length
     
       this.loadAsset();
     }

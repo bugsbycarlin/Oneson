@@ -36,7 +36,7 @@ class LevelEditor extends Screen {
     this.config = world_config["swizzle"];
 
     let background_color = makeBlank(this, game.width, game.height, 0, 0);
-    background_color.tint = 0xfcfca5;
+    background_color.tint = 0xA0D2A2;
 
     this.map = new PIXI.Container();
     this.addChild(this.map);
@@ -49,24 +49,40 @@ class LevelEditor extends Screen {
     this.map.addChild(layers["objects"]);
     layers["effects"] = new PIXI.Container();
     this.map.addChild(layers["effects"]);
+    
     layers["display"] = new PIXI.Container();
-    this.map.addChild(layers["display"]);
+    this.addChild(layers["display"]);
 
     // this.map.scale.set(0.8, 0.8);
 
     this.terrain = [];
 
-    this.road_files = window.fileList(road_directory).filter((item) => {return !item.includes("Store") && item.includes(".png")}).map((item) => {return item.replace(".png","")});
-    this.exterior_files = window.fileList(exterior_directory).filter((item) => {return !item.includes("Store") && item.includes(".json")}).map((item) => {return item.replace(".json","")});
+    let font_16 = {fontFamily: "Bebas Neue", fontSize: 16, fill: 0x000000, letterSpacing: 2, align: "left"};
+    this.count_text = makeText("", font_16, layers["display"], 20, 20, 0, 0);
+    this.info_text = makeText("Something", font_16, layers["display"], 20, 40, 0, 0);
 
     this.loadMap();
     this.addCharacters();
 
+    this.road_files = window.fileList(road_directory).filter((item) => {return !item.includes("Store") && item.includes(".png")}).map((item) => {return item.replace(".png","")});
+    let exteriors = window.fileList(exterior_directory).filter((item) => {return !item.includes("Store") && item.includes(".json")}).map((item) => {return item.replace(".json","")});
+    this.exterior_files = [];
+    for (let i = 0; i < exteriors.length; i++) {
+      let name = exteriors[i];
+      let found = false;
+      for (let j = 0; j < this.exterior_elements.length; j++) {
+        if (this.exterior_elements[j].name == name) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        this.exterior_files.push(exteriors[i]);
+      }
+    }
+
     this.new_item = null;
     this.new_item_selection = 0;
-
-    let font_16 = {fontFamily: "Bebas Neue", fontSize: 16, fill: 0x000000, letterSpacing: 2, align: "left"};
-    this.info_text = makeText("Something", font_16, layers["display"], 20, 20, 0, 0);
 
     this.state = "roads";
   }
@@ -228,30 +244,74 @@ class LevelEditor extends Screen {
     }
 
 
-    if (elements.length > 0) {
-      if (key === "Backspace") {
-        let x = elements.pop();
-        layer.removeChild(x);
-      }
+    if (key === "Escape" && this.selected_element != null) {
+      this.info_text.text = "Deselected " + this.selected_element.name;
+      delay(() => {
+        this.info_text.text = "";
+      }, 2000);
 
+      this.selected_element = null;
+      this.sortLayer(this.road_elements, "roads");
+      this.sortLayer(this.exterior_elements, "ground", true);
+      this.sortObjectLayer();
+    }
+
+
+    // if (this.selected_element == null && elements.length > 0) {
+    //   if (key === "Backspace") {
+    //     let x = elements.pop();
+    //     layer.removeChild(x);
+    //   }
+
+    //   if (key === "w") {
+    //     elements[elements.length - 1].y -= 1;
+    //   }
+
+    //   if (key === "s") {
+    //     elements[elements.length - 1].y += 1;
+    //   }
+
+    //   if (key === "a") {
+    //     elements[elements.length - 1].x -= 1;
+    //   }
+
+    //   if (key === "d") {
+    //     elements[elements.length - 1].x += 1;
+    //   }
+    // }
+
+    if (this.selected_element != null) {
       if (key === "w") {
-        elements[elements.length - 1].y -= 1;
+        this.selected_element.y -= 1;
       }
 
       if (key === "s") {
-        elements[elements.length - 1].y += 1;
+        this.selected_element.y += 1;
       }
 
       if (key === "a") {
-        elements[elements.length - 1].x -= 1;
+        this.selected_element.x -= 1;
       }
 
       if (key === "d") {
-        elements[elements.length - 1].x += 1;
+        this.selected_element.x += 1;
+      }
+
+      // if (key === "d" || key === "w" || key === "a" || key === "s") {
+      //   this.sortLayer(this.road_elements, "roads");
+      //   this.sortLayer(this.exterior_elements, "ground", true);
+      //   this.sortObjectLayer();
+      // }
+    }
+
+
+    if (key === "h") {
+      if (this.map.scale.x < 0.5) {
+        this.map.scale.set(1,1);
+      } else {
+        this.map.scale.set(0.2, 0.2);
       }
     }
-    
-
   }
 
 
@@ -272,11 +332,45 @@ class LevelEditor extends Screen {
   // Mouse clickos
   mouseUp(ev) {
     // the true event is trash, use this instead
-    // let mouse_data = pixi.renderer.plugins.interaction.mouse.global;
-    // let m_x = Math.round(mouse_data.x);
-    // let m_y = Math.round(mouse_data.y);
+    let mouse_data = pixi.renderer.plugins.interaction.mouse.global;
+    let m_x = Math.round(mouse_data.x);
+    let m_y = Math.round(mouse_data.y);
     let player = this.player;
     let layers = this.layers;
+
+    if (this.new_item == null) {
+      let selection = null;
+      let min_distance = 500;
+
+      let w_x = m_x + player.x - game.width/2 
+      let w_y = m_y + player.y - game.height/2
+      console.log(w_x + "," + w_y)
+
+      for (let i = 0; i < this.road_elements.length; i++) {
+        let d = distance(this.road_elements[i].x, this.road_elements[i].y, w_x, w_y);
+        console.log(d);
+        if (d < min_distance) {
+          min_distance = d;
+          selection = this.road_elements[i];
+        }
+      }
+      for (let i = 0; i < this.exterior_elements.length; i++) {
+        let d = distance(this.exterior_elements[i].x, this.exterior_elements[i].y, w_x, w_y);
+        if (d < min_distance) {
+          min_distance = d;
+          selection = this.exterior_elements[i];
+        }
+      }
+
+      if (selection != null) {
+        this.selected_element = selection;
+
+        this.info_text.text = "Selected " + this.selected_element.name;
+        delay(() => {
+          this.info_text.text = "";
+        }, 2000);
+      }
+    }
     
     // Road version
     if (this.new_item != null && this.state === "roads") {
@@ -284,6 +378,7 @@ class LevelEditor extends Screen {
       this.new_item = null;
 
       this.sortLayer(this.road_elements, "roads");
+      this.selected_element = null;
     } else if (this.new_item != null && this.state === "exteriors") {
       this.exterior_elements.push(this.new_item);
 
@@ -293,6 +388,7 @@ class LevelEditor extends Screen {
 
       this.sortLayer(this.exterior_elements, "ground", true);
       this.sortObjectLayer();
+      this.selected_element = null;
     } 
   }
 
@@ -474,12 +570,15 @@ class LevelEditor extends Screen {
     // very hacky place to put this
     if (sort_terrain) {
       let new_terrain = [];
+      let count = 0;
       for (let i = 0; i < draw_elements.length; i++) {
         for (let j = 0; j < draw_elements[i].exterior_objects.length; j++) {
           new_terrain.push(draw_elements[i].exterior_objects[j])
         }
+        count += 1;
       }
       this.terrain = new_terrain;
+      this.count_text.text = count + " exteriors"
     }
   }
 
@@ -549,9 +648,16 @@ class LevelEditor extends Screen {
     const screen_acceleration = 3.5;
     const screen_max_speed = 18;
     
-    for (const item of ["roads", "ground", "objects", "effects"]) {
-      layers[item].x = (game.width/2 - this.player.x)
-      layers[item].y = (game.height/2 - this.player.y)
+    if (this.map.scale.x > 0.5) {
+      for (const item of ["roads", "ground", "objects", "effects"]) {
+        layers[item].x = (game.width/2 - this.player.x)
+        layers[item].y = (game.height/2 - this.player.y)
+      }
+    } else {
+      for (const item of ["roads", "ground", "objects", "effects"]) {
+        layers[item].x = (game.width*2 - this.player.x)
+        layers[item].y = (game.height*2 - this.player.y)
+      }
     }
   }
 
