@@ -186,6 +186,7 @@ class LevelEditor extends Screen {
 
     let player = this.player;
     let layers = this.layers;
+    let keymap = game.keymap;
     let key = ev.key;
 
     // key pressy things like pause
@@ -281,20 +282,20 @@ class LevelEditor extends Screen {
     // }
 
     if (this.selected_element != null) {
-      if (key === "w") {
-        this.selected_element.y -= 1;
+      if (key.toLowerCase() === "w") {
+        this.selected_element.y -= keymap["Shift"] ? 10 : 1;
       }
 
-      if (key === "s") {
-        this.selected_element.y += 1;
+      if (key.toLowerCase() === "s") {
+        this.selected_element.y += keymap["Shift"] ? 10 : 1;
       }
 
-      if (key === "a") {
-        this.selected_element.x -= 1;
+      if (key.toLowerCase() === "a") {
+        this.selected_element.x -= keymap["Shift"] ? 10 : 1;
       }
 
-      if (key === "d") {
-        this.selected_element.x += 1;
+      if (key.toLowerCase() === "d") {
+        this.selected_element.x += keymap["Shift"] ? 10 : 1;
       }
 
       // if (key === "d" || key === "w" || key === "a" || key === "s") {
