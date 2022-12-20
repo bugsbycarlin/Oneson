@@ -312,6 +312,11 @@ class LevelEditor extends Screen {
         this.map.scale.set(0.2, 0.2);
       }
     }
+
+    if (key === "u") {
+      game.createScreen("file_editor");
+      game.popScreens(game.current_screen, "file_editor");
+    }
   }
 
 

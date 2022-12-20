@@ -205,6 +205,11 @@ class FileEditor extends Screen {
     if (key === "v") {
       images[0].visible = images[0].visible == true ? false : true;
     }
+
+    if (key === "u") {
+      game.createScreen("level_editor");
+      game.popScreens(game.current_screen, "level_editor");
+    }
   }
 
 
