@@ -98,6 +98,7 @@ class LevelEditor extends Screen {
     layers["objects"].addChild(this.player);
 
     this.player_ghost = game.makeCharacter("brown_bear_ghost");
+    // this.player_ghost.alpha = 0.5;
     this.player_ghost.scale.set(0.66, 0.66);
     layers["effects"].addChild(this.player_ghost);
 
