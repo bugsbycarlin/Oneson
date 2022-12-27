@@ -127,8 +127,8 @@ class Game {
 
         if (now - last_performance_update > 3000 && log_performance) {
           //There were 3000 milliseconds, so divide fps_counter by 3
-          // console.log("FPS: " + fps_counter / 3);
-          // this.trackPrint(["update", "tween", "animate"]);
+          console.log("FPS: " + fps_counter / 3);
+          this.trackPrint(["update", "tween", "animate"]);
           fps_counter = 0;
           last_performance_update = now;
         }

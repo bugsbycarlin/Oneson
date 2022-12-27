@@ -36,11 +36,13 @@ class LevelEditor extends Screen {
     this.config = world_config["swizzle"];
 
     let background_color = makeBlank(this, game.width, game.height, 0, 0);
-    background_color.tint = 0xA0D2A2;
+    background_color.tint = 0xc0c867;
 
     this.map = new PIXI.Container();
     this.addChild(this.map);
 
+    layers["background"] = new PIXI.Container();
+    this.map.addChild(layers["background"]);
     layers["roads"] = new PIXI.Container();
     this.map.addChild(layers["roads"]);
     layers["ground"] = new PIXI.Container();
@@ -61,6 +63,7 @@ class LevelEditor extends Screen {
     this.count_text = makeText("", font_16, layers["display"], 20, 20, 0, 0);
     this.info_text = makeText("Something", font_16, layers["display"], 20, 40, 0, 0);
 
+    this.addBackgroundTiles();
     this.loadMap();
     this.addCharacters();
 
@@ -85,6 +88,78 @@ class LevelEditor extends Screen {
     this.new_item_selection = 0;
 
     this.state = "roads";
+  }
+
+
+  addBackgroundTiles() {
+    this.bg_x_span = 510;
+    this.bg_y_span = 295;
+
+    this.bg_tiles = [];
+
+    for (let i = -3; i < 3; i++) {
+      for (let j = -3; j < 3; j++) {
+        let tile = makeSprite("Art/Grass/grass_layer.png", this.layers["background"], game.width/2 + this.bg_x_span * i - this.bg_x_span * j, game.height/2 + this.bg_y_span * i + this.bg_y_span * j, 0.5, 0.5, false);
+        tile.alpha = 0.4;
+        tile.orig_x = tile.x;
+        tile.orig_y = tile.y;
+        this.bg_tiles.push(tile);
+      }
+    }
+  }
+
+
+  loadMap() {
+    let existing_map_files = window.fileList(map_directory).filter((item) => {return item.includes(map_name) && item.includes(".json")});
+    
+
+    let max_file_number = -1;
+    for (let i = 0; i < existing_map_files.length; i++) {
+      let number = Number(existing_map_files[i].replace(map_name + "_","").replace(".json",""));
+      if (number > max_file_number) max_file_number = number;
+    }
+
+
+    let input_filename = map_name + "_" + String(max_file_number).padStart(3, "0") + ".json";
+    let input_path = map_directory + "/" + input_filename;
+
+    let data = null;
+    if (window.checkFile(input_path) === true) {
+      data = JSON.parse(window.readFile(input_path));
+    }
+
+    if (data != null) {
+
+      for (let i = 0; i < data["roads"].length; i++) {
+        let item = data["roads"][i];
+        let element = makeSprite(road_directory + "/" + item.type + ".png", this.layers["roads"], item.x, item.y, 0.5, 0.5, false);
+        element.name = item.type;
+        if (item.reversed) {
+          element.reversed = true;
+          element.scale.x = -1;
+        }
+
+        this.road_elements.push(element);
+      }
+
+      for (let i = 0; i < data["exteriors"].length; i++) {
+        let item = data["exteriors"][i];
+        let element = makeSprite(exterior_directory + "/" + item.type + "_0.png", this.layers["ground"], item.x, item.y, 0.5, 0.5, false);
+        element.name = item.type;
+        if (item.reversed) {
+          element.reversed = true;
+          element.scale.x = -1;
+        }
+
+        this.exterior_elements.push(element);
+
+        element.exterior_objects = this.addExteriorObjects(element.name, element.reversed, element.x, element.y)
+      }
+
+      this.sortLayer(this.road_elements, "roads");
+      this.sortLayer(this.exterior_elements, "ground", true);
+      // this.sortObjectLayer();
+    }
   }
 
 
@@ -116,10 +191,8 @@ class LevelEditor extends Screen {
 
     let data = null;
     if (window.checkFile(asset_path) === true) {
-      console.log("reading data");
       data = JSON.parse(window.readFile(asset_path));
     }
-    console.log(data);
 
     let polygons = data.polygons;
     let terrain_width = data.width;
@@ -351,11 +424,9 @@ class LevelEditor extends Screen {
 
       let w_x = m_x + player.x - game.width/2 
       let w_y = m_y + player.y - game.height/2
-      console.log(w_x + "," + w_y)
 
       for (let i = 0; i < this.road_elements.length; i++) {
         let d = distance(this.road_elements[i].x, this.road_elements[i].y, w_x, w_y);
-        console.log(d);
         if (d < min_distance) {
           min_distance = d;
           selection = this.road_elements[i];
@@ -397,64 +468,6 @@ class LevelEditor extends Screen {
       this.sortObjectLayer();
       this.selected_element = null;
     } 
-  }
-
-
-  loadMap() {
-    let existing_map_files = window.fileList(map_directory).filter((item) => {return item.includes(map_name) && item.includes(".json")});
-    
-
-    let max_file_number = -1;
-    for (let i = 0; i < existing_map_files.length; i++) {
-      let number = Number(existing_map_files[i].replace(map_name + "_","").replace(".json",""));
-      if (number > max_file_number) max_file_number = number;
-    }
-
-
-    let input_filename = map_name + "_" + String(max_file_number).padStart(3, "0") + ".json";
-    let input_path = map_directory + "/" + input_filename;
-
-    let data = null;
-    if (window.checkFile(input_path) === true) {
-      console.log("reading data");
-      data = JSON.parse(window.readFile(input_path));
-    }
-
-    console.log(data);
-    if (data != null) {
-
-      for (let i = 0; i < data["roads"].length; i++) {
-        let item = data["roads"][i];
-        console.log(item);
-        let element = makeSprite(road_directory + "/" + item.type + ".png", this.layers["roads"], item.x, item.y, 0.5, 0.5, false);
-        element.name = item.type;
-        if (item.reversed) {
-          element.reversed = true;
-          element.scale.x = -1;
-        }
-
-        this.road_elements.push(element);
-      }
-
-      for (let i = 0; i < data["exteriors"].length; i++) {
-        let item = data["exteriors"][i];
-        console.log(item);
-        let element = makeSprite(exterior_directory + "/" + item.type + "_0.png", this.layers["ground"], item.x, item.y, 0.5, 0.5, false);
-        element.name = item.type;
-        if (item.reversed) {
-          element.reversed = true;
-          element.scale.x = -1;
-        }
-
-        this.exterior_elements.push(element);
-
-        element.exterior_objects = this.addExteriorObjects(element.name, element.reversed, element.x, element.y)
-      }
-
-      this.sortLayer(this.road_elements, "roads");
-      this.sortLayer(this.exterior_elements, "ground", true);
-      // this.sortObjectLayer();
-    }
   }
 
 
@@ -561,7 +574,6 @@ class LevelEditor extends Screen {
 
   testMove(x, y, direction) {
     let point = this.player.computeStep(x, y, direction);
-    console.log(point);
     for (let i = 0; i < this.illegal_area_polygons.length; i++) {
       if (pointInsidePolygon(point, this.illegal_area_polygons[i])) return false;
     }
@@ -606,7 +618,6 @@ class LevelEditor extends Screen {
 
     let added_character = false;
 
-    console.log(this.terrain);
 
     for (let i = 0; i < this.terrain.length; i++) {
       let terrain = this.terrain[i];
@@ -615,7 +626,7 @@ class LevelEditor extends Screen {
 
         if (player.y < terrain.min_y) {
           added_character = true;
-          console.log("adding character because above min for " + terrain.name)
+          // console.log("adding character because above min for " + terrain.name)
           layers["objects"].addChild(player);
           layers["objects"].addChild(terrain);
         } else if (player.y > terrain.max_y || player.x < terrain.min_x || player.x > terrain.max_x) {
@@ -628,7 +639,7 @@ class LevelEditor extends Screen {
             let p2 = [player.x, d];
             if (pointInsidePolygon(p2, terrain.polygon)) {
               added_character = true;
-              console.log("adding character because ray cast into polygon for " + terrain.name)
+              // console.log("adding character because ray cast into polygon for " + terrain.name)
               layers["objects"].addChild(player);
               layers["objects"].addChild(terrain);
               added_terrain = true;
@@ -644,11 +655,11 @@ class LevelEditor extends Screen {
     }
 
     if (!added_character) {
-      console.log("adding character at the end by default")
+      // console.log("adding character at the end by default")
       layers["objects"].addChild(player);
     }
 
-    console.log("Terrain layer length is " + layers["objects"].children.length)
+    // console.log("Terrain layer length is " + layers["objects"].children.length)
   }
 
 
@@ -665,6 +676,13 @@ class LevelEditor extends Screen {
       for (const item of ["roads", "ground", "objects", "effects"]) {
         layers[item].x = (game.width/2 - this.player.x)
         layers[item].y = (game.height/2 - this.player.y)
+      }
+
+      let m_x = this.player.x % (this.bg_x_span * 2);
+      let m_y = this.player.y % (this.bg_y_span * 2);
+      for (let i = 0; i < this.bg_tiles.length; i++) {
+        this.bg_tiles[i].x = this.bg_tiles[i].orig_x - m_x;
+        this.bg_tiles[i].y = this.bg_tiles[i].orig_y - m_y;
       }
     } else {
       for (const item of ["roads", "ground", "objects", "effects"]) {
