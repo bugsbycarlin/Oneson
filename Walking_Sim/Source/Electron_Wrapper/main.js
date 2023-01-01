@@ -21,8 +21,12 @@ function createWindow () {
     if (value != null) fullscreen = value;
 
     const mainWindow = new BrowserWindow({
-      width: 1664,
-      height: 982,
+      // width: 1664,
+      // height: 982,
+      // width: 1280,
+      // height: 742,
+      width: 1600,
+      height: 922,
       fullscreen: fullscreen,
       backgroundColor: '#000000',
       show: false,

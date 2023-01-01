@@ -85,8 +85,12 @@ class Game {
 
 
   basicInit() {
-    this.width = 1664;
-    this.height = 960;
+    // this.width = 1664;
+    // this.height = 960;
+    // this.width = 1280;
+    // this.height = 720;
+    this.width = 1600;
+    this.height = 922;
 
     // Create the pixi application
     pixi = new PIXI.Application(this.width, this.height, {antialias: true});
@@ -127,8 +131,8 @@ class Game {
 
         if (now - last_performance_update > 3000 && log_performance) {
           //There were 3000 milliseconds, so divide fps_counter by 3
-          console.log("FPS: " + fps_counter / 3);
-          this.trackPrint(["update", "tween", "animate"]);
+          // console.log("FPS: " + fps_counter / 3);
+          // this.trackPrint(["update", "tween", "animate"]);
           fps_counter = 0;
           last_performance_update = now;
         }
